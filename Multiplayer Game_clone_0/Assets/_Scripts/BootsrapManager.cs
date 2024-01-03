@@ -62,9 +62,33 @@ public class BootsrapManager : MonoBehaviour
     private void OnLobbyEntered(LobbyEnter_t callback)
     {
         CurrentLobbyID = callback.m_ulSteamIDLobby;
+
+        
+        MainMenuManager.LobbyEntered(SteamMatchmaking.GetLobbyData(new CSteamID(CurrentLobbyID), "name"), _networkManager.IsServer);
+        
+
         _fishySteamworks.SetClientAddress(SteamMatchmaking.GetLobbyData(new CSteamID(CurrentLobbyID), "HostAdress"));
         _fishySteamworks.StartConnection(false);
 
+    }
+
+    public static void JoinByID(CSteamID steamID)
+    {
+        Debug.Log("Attempting to join lobby with iD: " + steamID.m_SteamID);
+        if (SteamMatchmaking.RequestLobbyData(steamID))
+            SteamMatchmaking.JoinLobby(steamID);
+        else
+            Debug.Log("Failed to join lobby with ID: " + steamID.m_SteamID);
+    }
+
+    public static void LeaveLobby()
+    {
+        SteamMatchmaking.LeaveLobby(new CSteamID(CurrentLobbyID));
+        CurrentLobbyID = 0;
+
+        instance._fishySteamworks.StopConnection(false);
+        if (instance._networkManager.IsServer)
+            instance._fishySteamworks.StopConnection(true);
     }
 
 }
